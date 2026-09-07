@@ -1,0 +1,150 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/* ThreatLens design system
+   - The `slate` scale is retinted so the whole console shares one neutral ramp.
+     It is INVERTED under [data-mode="light"] so bg-slate-950 (page) and
+     text-slate-100 (foreground) both flip correctly for bright mode.
+   - blue/cyan/sky are routed through the accent chain so the live color
+     switcher recolors all brand chrome at once. Risk colors (rose/orange/
+     amber/emerald) are intentionally left alone to preserve meaning. */
+@theme {
+  --color-slate-950: var(--n-950);
+  --color-slate-900: var(--n-900);
+  --color-slate-800: var(--n-800);
+  --color-slate-700: var(--n-700);
+  --color-slate-600: var(--n-600);
+  --color-slate-500: var(--n-500);
+  --color-slate-400: var(--n-400);
+  --color-slate-300: var(--n-300);
+  --color-slate-200: var(--n-200);
+  --color-slate-100: var(--n-100);
+
+  --color-white: var(--ink-strong);
+
+  --color-blue-400: var(--accent-soft);
+  --color-blue-500: var(--accent);
+  --color-blue-600: var(--accent-strong);
+  --color-cyan-400: var(--accent-soft);
+  --color-cyan-500: var(--accent);
+  --color-sky-400: var(--accent-soft);
+  --color-sky-500: var(--accent);
+}
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color-scheme: dark;
+
+  /* Neutral ramp - DARK (charcoal-indigo) */
+  --n-950: #0b0e18;
+  --n-900: #141a2b;
+  --n-800: #202840;
+  --n-700: #2c3654;
+  --n-600: #3d496b;
+  --n-500: #8a93ac;
+  --n-400: #a7afc6;
+  --n-300: #c7cddd;
+  --n-200: #e4e8f1;
+  --n-100: #f3f5fa;
+  --ink-strong: #ffffff;
+
+  --canvas: #0b0e18;
+  --surface: rgba(24, 31, 51, 0.72);
+  --surface-strong: rgba(32, 40, 64, 0.9);
+  --surface-soft: rgba(18, 24, 41, 0.74);
+  --line: rgba(120, 135, 180, 0.18);
+  --ink: #eef1f8;
+  --muted: #a7afc6;
+
+  /* Accent chain - TEAL default */
+  --accent-soft: #4de3e4;
+  --accent: #17c3c5;
+  --accent-strong: #0fa6a8;
+  --accent-2: #6c8cff;
+  --accent-glow: rgba(23, 195, 197, 0.28);
+  --line-strong: rgba(23, 195, 197, 0.4);
+}
+
+/* Bright mode: invert the neutral ramp + lighten surfaces */
+:root[data-mode="light"] {
+  color-scheme: light;
+  --n-950: #eef1f8;
+  --n-900: #ffffff;
+  --n-800: #dfe4f0;
+  --n-700: #cdd4e5;
+  --n-600: #aab2c9;
+  --n-500: #667089;
+  --n-400: #515b74;
+  --n-300: #3a4258;
+  --n-200: #262d3f;
+  --n-100: #131826;
+  --ink-strong: #0e1220;
+
+  --canvas: #eef1f8;
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-strong: rgba(255, 255, 255, 0.95);
+  --surface-soft: rgba(255, 255, 255, 0.7);
+  --line: rgba(60, 73, 107, 0.16);
+  --ink: #131826;
+  --muted: #515b74;
+}
+
+/* Accent presets - the live "box color" switcher */
+:root[data-theme="indigo"] { --accent-soft: #818cf8; --accent: #6366f1; --accent-strong: #4f46e5; --accent-2: #22d3ee; --accent-glow: rgba(99, 102, 241, 0.3); --line-strong: rgba(99, 102, 241, 0.42); }
+:root[data-theme="rose"] { --accent-soft: #fb7ea0; --accent: #f43f6e; --accent-strong: #e11d54; --accent-2: #fca5a5; --accent-glow: rgba(244, 63, 110, 0.3); --line-strong: rgba(244, 63, 110, 0.42); }
+:root[data-theme="emerald"] { --accent-soft: #34e6b0; --accent: #10b981; --accent-strong: #059669; --accent-2: #5eead4; --accent-glow: rgba(16, 185, 129, 0.28); --line-strong: rgba(16, 185, 129, 0.42); }
+:root[data-theme="amber"] { --accent-soft: #fbca57; --accent: #f5a524; --accent-strong: #d98a0b; --accent-2: #fda4af; --accent-glow: rgba(245, 165, 36, 0.3); --line-strong: rgba(245, 165, 36, 0.42); }
+:root[data-theme="sky"] { --accent-soft: #56c8f5; --accent: #0ea5e9; --accent-strong: #0284c7; --accent-2: #818cf8; --accent-glow: rgba(14, 165, 233, 0.3); --line-strong: rgba(14, 165, 233, 0.42); }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% -5%, var(--accent-glow), transparent 34%),
+    radial-gradient(circle at 92% 8%, rgba(108, 140, 255, 0.14), transparent 32%),
+    var(--canvas);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .4s ease, color .4s ease;
+}
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+::selection { background: var(--accent); color: #06121a; }
+
+.glass { background: var(--surface); border: 1px solid var(--line); box-shadow: 0 20px 55px rgba(6, 10, 24, .28), inset 0 1px rgba(255,255,255,.05); backdrop-filter: blur(24px); }
+.glass-strong { background: var(--surface-strong); border-color: var(--line-strong); }
+:root[data-mode="light"] .glass { box-shadow: 0 18px 44px rgba(30, 44, 90, .12), inset 0 1px rgba(255,255,255,.6); }
+.cyber-grid { background-image: linear-gradient(rgba(120, 135, 180, .06) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 135, 180, .06) 1px, transparent 1px); background-size: 34px 34px; }
+.app-atmosphere { position: fixed; inset: 0; pointer-events: none; opacity: .85; background: radial-gradient(circle at 12% 0%, var(--accent-glow), transparent 26%), radial-gradient(circle at 88% 16%, rgba(108, 140, 255, .16), transparent 26%); transition: opacity .4s ease; }
+.text-accent { color: var(--accent); }
+.border-accent { border-color: var(--line-strong); }
+.bg-accent { background: var(--accent); }
+.shadow-accent { box-shadow: 0 12px 34px var(--accent-glow); }
+.accent-gradient { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+
+.auth-input { width: 100%; border-radius: .75rem; border: 1px solid var(--line); background: var(--surface-soft); color: var(--ink); padding: .7rem .8rem; font-size: .75rem; outline: none; transition: border-color .2s, box-shadow .2s; }
+.auth-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.auth-input::placeholder { color: var(--muted); }
+
+.hover-lift { transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.hover-lift:hover { transform: translateY(-3px); border-color: var(--line-strong); box-shadow: 0 24px 48px rgba(6,10,24,.3), 0 0 32px var(--accent-glow); }
+
+.reveal { animation: reveal .55s cubic-bezier(.2,.8,.2,1) both; }
+.reveal-delay-1 { animation-delay: .08s; } .reveal-delay-2 { animation-delay: .16s; } .reveal-delay-3 { animation-delay: .24s; }
+@keyframes reveal { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+@keyframes float-in { from { opacity: 0; transform: translateY(24px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.float-in { animation: float-in .6s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes ring-spin { to { transform: rotate(360deg); } }
+.ring-spin { animation: ring-spin 14s linear infinite; }
+@keyframes glow-pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+.glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+
+::-webkit-scrollbar { width: 7px; height: 7px; } ::-webkit-scrollbar-track { background: var(--surface-soft); } ::-webkit-scrollbar-thumb { background: var(--n-700); border-radius: 999px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+.leaflet-container { width: 100%; height: 100%; background: var(--n-900); border-radius: .75rem; z-index: 10; }
+.leaflet-popup-content-wrapper { background: var(--surface-strong); color: var(--ink); border: 1px solid var(--line); border-radius: .75rem; box-shadow: 0 10px 25px rgba(0,0,0,.35); }
+.leaflet-popup-tip { background: var(--surface-strong); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+@media (max-width: 700px) { .app-atmosphere { opacity: .5; } }
