@@ -33,8 +33,8 @@ export default function ReasonList({ reasons = [] }) {
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+    <div className="glass rounded-[1.6rem] p-6 hover-lift h-full">
+      <div className="flex items-center justify-between pb-3 border-b border-white/10">
         <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-blue-400" />
           Threat Indicators & Explainable Risk Reasons
@@ -53,7 +53,7 @@ export default function ReasonList({ reasons = [] }) {
           reasons.map((r, i) => (
             <div
               key={r.id || i}
-              className="flex items-start justify-between gap-3 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 transition-colors"
+              className="flex items-start justify-between gap-3 p-3 rounded-xl bg-black/20 border border-white/8 hover:border-white/20 transition-colors"
             >
               <div className="flex items-start space-x-3">
                 <div className="mt-0.5 p-1.5 rounded-lg bg-slate-900 border border-slate-800">

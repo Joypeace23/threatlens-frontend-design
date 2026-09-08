@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { MapPin, Navigation, Server, Globe2, ShieldAlert } from 'lucide-react';
+import { Server, Globe2, ShieldAlert } from 'lucide-react';
 
 export default function HopMap({ hops = [] }) {
   const mapContainerRef = useRef(null);
@@ -132,9 +132,9 @@ export default function HopMap({ hops = [] }) {
   }, [hops]);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+    <div className="glass rounded-[1.6rem] p-6 space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/10">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <Globe2 className="w-4 h-4 text-blue-400" />

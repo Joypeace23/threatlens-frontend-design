@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 import EmailUploader from './components/EmailUploader';
 import RiskScoreCard from './components/RiskScoreCard';
 import ReasonList from './components/ReasonList';
@@ -10,6 +11,8 @@ import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import AiBriefingCard from './components/AiBriefingCard';
 import WelcomeScreen from './components/WelcomeScreen';
+import FloatingSettings from './components/FloatingSettings';
+import DashboardHero from './components/DashboardHero';
 import {
   listEmails,
   getEmailDetail,
@@ -20,18 +23,22 @@ import {
   getStoredUser,
   logoutUser,
 } from './api/client';
-import { Clock, Inbox, ChevronRight, Trash2, X } from 'lucide-react';
+import { Clock, Inbox, ChevronRight, Trash2 } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('scanner');
   const [backendOnline, setBackendOnline] = useState(false);
   const [emails, setEmails] = useState([]);
   const [currentEmail, setCurrentEmail] = useState(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [maskPii, setMaskPii] = useState(false);
-  const [accentTheme, setAccentTheme] = useState(() => window.localStorage.getItem('threatlens-theme') || 'teal');
+  const [maskPii, setMaskPii] = useState(() => window.localStorage.getItem('threatlens-mask-pii') === '1');
+  const [accentTheme, setAccentTheme] = useState(() => window.localStorage.getItem('threatlens-theme') || 'violet');
   const [mode, setMode] = useState(() => window.localStorage.getItem('threatlens-mode') || 'dark');
+  const [glassLevel, setGlassLevel] = useState(() => window.localStorage.getItem('threatlens-glass') || 'medium');
+  const [motion, setMotion] = useState(() => window.localStorage.getItem('threatlens-motion') || 'on');
   const [showWelcome, setShowWelcome] = useState(() => window.localStorage.getItem('threatlens-welcomed') !== '1');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const vaultRef = useRef(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = accentTheme;
@@ -43,16 +50,28 @@ export default function App() {
     window.localStorage.setItem('threatlens-mode', mode);
   }, [mode]);
 
+  useEffect(() => {
+    document.documentElement.dataset.glass = glassLevel;
+    window.localStorage.setItem('threatlens-glass', glassLevel);
+  }, [glassLevel]);
+
+  useEffect(() => {
+    document.documentElement.dataset.motion = motion;
+    window.localStorage.setItem('threatlens-motion', motion);
+  }, [motion]);
+
+  useEffect(() => {
+    window.localStorage.setItem('threatlens-mask-pii', maskPii ? '1' : '0');
+  }, [maskPii]);
+
   const enterConsole = () => {
     setShowWelcome(false);
     window.localStorage.setItem('threatlens-welcomed', '1');
   };
 
-  // Auth State
   const [user, setUser] = useState(getStoredUser());
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
-  // Initial load
   useEffect(() => {
     checkHealthAndLoad();
   }, []);
@@ -74,19 +93,15 @@ export default function App() {
 
   const loadEmail = async (id) => {
     try {
-      setLoadingDetail(true);
       const detail = await getEmailDetail(id);
       setCurrentEmail(detail);
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoadingDetail(false);
     }
   };
 
   const handleScanComplete = (newEmail) => {
     setCurrentEmail(newEmail);
-    // Refresh queue
     listEmails().then((list) => setEmails(list));
     setActiveTab('scanner');
   };
@@ -151,197 +166,238 @@ export default function App() {
     setUser(null);
   };
 
+  const q = searchQuery.trim().toLowerCase();
+  const visibleEmails = q
+    ? emails.filter((em) =>
+        [em.subject, em.sender, em.sender_domain, em.risk_level]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(q)
+      )
+    : emails;
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col">
-      <div className="app-atmosphere cyber-grid" aria-hidden="true" />
-      <Navbar
+    <div className="relative min-h-screen text-slate-100 flex">
+      <div className="app-orbs cyber-grid" aria-hidden="true">
+        <div className="orb-third" />
+      </div>
+
+      <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         backendOnline={backendOnline}
         user={user}
         onOpenAuthModal={() => setAuthModalOpen(true)}
         onLogout={handleLogout}
-        mode={mode}
-        onToggleMode={() => setMode((m) => (m === 'light' ? 'dark' : 'light'))}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
+
+      <div className="relative z-10 flex-1 min-w-0 flex flex-col">
+        <Navbar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          backendOnline={backendOnline}
+          user={user}
+          onOpenAuthModal={() => setAuthModalOpen(true)}
+          onLogout={handleLogout}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+
+        {showWelcome && (
+          <WelcomeScreen onEnter={enterConsole} backendOnline={backendOnline} user={user} />
+        )}
+
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+          onAuthSuccess={handleAuthSuccess}
+        />
+
+        <main className="flex-1 px-3 sm:px-5 pb-8">
+          <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5">
+            <div className="space-y-5 min-w-0">
+              {activeTab === 'scanner' && <DashboardHero emails={emails} user={user} />}
+
+              {activeTab === 'scanner' && (
+                <div className="space-y-5">
+                  <EmailUploader onScanComplete={handleScanComplete} />
+
+                  {currentEmail && (
+                    <div className="space-y-5">
+                      <div className="glass rounded-[1.6rem] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover-lift">
+                        <div>
+                          <div className="flex items-center space-x-2 text-xs text-slate-400 font-mono">
+                            <span>INCIDENT ID:</span>
+                            <span className="text-white font-bold">{currentEmail.id}</span>
+                            <span>•</span>
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{new Date(currentEmail.created_at).toLocaleString()}</span>
+                          </div>
+                          <h2 className="text-xl font-black text-white mt-1">
+                            {currentEmail.subject || '(No Subject)'}
+                          </h2>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
+                            <span>From: <b className="text-slate-200">{currentEmail.sender}</b></span>
+                            {currentEmail.reply_to && (
+                              <span>Reply-To: <b className="text-slate-300">{currentEmail.reply_to}</b></span>
+                            )}
+                            <span>Domain: <b className="text-accent">{currentEmail.sender_domain}</b></span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2 self-start md:self-auto">
+                          {currentEmail.case_id && (
+                            <button
+                              type="button"
+                              onClick={() => setActiveTab('cases')}
+                              className="px-3.5 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-semibold flex items-center gap-2"
+                            >
+                              <span>Correlated case</span>
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteEmail(currentEmail.id)}
+                            className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <AiBriefingCard emailId={currentEmail.id} />
+
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        <RiskScoreCard
+                          email={currentEmail}
+                          onExport={handleExportPdf}
+                          onVerifyChain={() => vaultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                        />
+                        <div className="lg:col-span-2">
+                          <ReasonList reasons={currentEmail.reasons || []} />
+                        </div>
+                      </div>
+
+                      <HopMap hops={currentEmail.hops || []} />
+
+                      <div ref={vaultRef}>
+                        <ForensicChainViewer emailId={currentEmail.id} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'cases' && (
+                <CasesView
+                  onSelectEmail={(id) => {
+                    loadEmail(id);
+                    setActiveTab('scanner');
+                  }}
+                />
+              )}
+
+              {activeTab === 'settings' && (
+                <SettingsModal
+                  maskPii={maskPii}
+                  setMaskPii={setMaskPii}
+                  accentTheme={accentTheme}
+                  setAccentTheme={setAccentTheme}
+                />
+              )}
+            </div>
+
+            <aside className="space-y-4 xl:sticky xl:top-4 self-start">
+              <div className="glass rounded-[1.6rem] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+                    <Inbox className="w-4 h-4 text-accent" />
+                    Analyst feed
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-500">{visibleEmails.length}</span>
+                </div>
+                {visibleEmails.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-6 text-center">No incidents yet. Scan an email to populate the feed.</p>
+                ) : (
+                  <div className="space-y-2 max-h-[52vh] overflow-y-auto pr-1">
+                    {visibleEmails.map((em) => {
+                      const isSelected = currentEmail?.id === em.id;
+                      return (
+                        <div
+                          key={em.id}
+                          className={`rounded-2xl border p-2.5 transition ${
+                            isSelected ? 'border-accent bg-white/10' : 'border-white/8 bg-black/20 hover:border-white/20'
+                          }`}
+                        >
+                          <button type="button" onClick={() => { loadEmail(em.id); setActiveTab('scanner'); }} className="w-full text-left">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`w-2 h-2 rounded-full shrink-0 ${
+                                  em.risk_level === 'Critical'
+                                    ? 'bg-rose-500'
+                                    : em.risk_level === 'High'
+                                    ? 'bg-orange-500'
+                                    : em.risk_level === 'Medium'
+                                    ? 'bg-amber-500'
+                                    : 'bg-emerald-500'
+                                }`}
+                              />
+                              <span className="text-xs font-semibold truncate">{em.subject || em.sender}</span>
+                            </div>
+                            <div className="mt-1 text-[10px] font-mono text-slate-500 flex justify-between">
+                              <span className="truncate">{em.sender}</span>
+                              <span>{em.risk_score}</span>
+                            </div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteEmail(em.id, e)}
+                            className="mt-1 text-[10px] text-slate-500 hover:text-rose-400"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {emails.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearAll}
+                    className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/25 text-xs font-semibold"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Clear queue
+                  </button>
+                )}
+              </div>
+            </aside>
+          </div>
+        </main>
+
+        <footer className="relative z-10 px-5 pb-4 text-center text-[11px] text-slate-500 font-mono">
+          ThreatLens · Email threat detection · Smart India Hackathon 2026
+        </footer>
+      </div>
+
+      <FloatingSettings
+        open={settingsOpen}
+        setOpen={setSettingsOpen}
         accentTheme={accentTheme}
         setAccentTheme={setAccentTheme}
+        mode={mode}
+        setMode={setMode}
+        maskPii={maskPii}
+        setMaskPii={setMaskPii}
+        glassLevel={glassLevel}
+        setGlassLevel={setGlassLevel}
+        motion={motion}
+        setMotion={setMotion}
       />
-
-      {showWelcome && (
-        <WelcomeScreen onEnter={enterConsole} backendOnline={backendOnline} user={user} />
-      )}
-
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        onAuthSuccess={handleAuthSuccess}
-      />
-
-      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
-        {/* Recent Incidents Bar (Queue) */}
-        {emails.length > 0 && (
-          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between gap-4 overflow-x-auto">
-            <div className="flex items-center space-x-2 text-xs font-semibold text-slate-400 shrink-0 px-2">
-              <Inbox className="w-3.5 h-3.5 text-blue-400" />
-              <span>INCIDENT QUEUE ({emails.length}):</span>
-            </div>
-
-            <div className="flex items-center space-x-2 overflow-x-auto py-1 flex-1">
-              {emails.map((em) => {
-                const isSelected = currentEmail?.id === em.id;
-                return (
-                  <div
-                    key={em.id}
-                    className={`flex items-center space-x-1.5 pl-3 pr-1.5 py-1 rounded-lg text-xs font-mono shrink-0 transition-all border group ${
-                      isSelected
-                        ? 'bg-blue-600/20 border-blue-500 text-white font-bold'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => loadEmail(em.id)}
-                      className="flex items-center space-x-2 text-left"
-                    >
-                      <span
-                        className={`w-2 h-2 rounded-full shrink-0 ${
-                          em.risk_level === 'Critical'
-                            ? 'bg-rose-500'
-                            : em.risk_level === 'High'
-                            ? 'bg-orange-500'
-                            : em.risk_level === 'Medium'
-                            ? 'bg-amber-500'
-                            : 'bg-emerald-500'
-                        }`}
-                      />
-                      <span className="truncate max-w-[130px]">{em.subject || em.sender}</span>
-                      <span className="text-slate-500 font-normal">({em.risk_score})</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={(e) => handleDeleteEmail(em.id, e)}
-                      title="Delete this incident from queue"
-                      className="p-1 text-slate-500 hover:text-rose-400 hover:bg-slate-800/80 rounded transition-colors"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              onClick={handleClearAll}
-              title="Clear all incidents from the queue"
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold shrink-0 transition-colors"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Clear Queue</span>
-            </button>
-          </div>
-        )}
-
-        {/* Tab 1: Scanner & Active Investigation */}
-        {activeTab === 'scanner' && (
-          <div className="space-y-6">
-            {/* Upload Area */}
-            <EmailUploader onScanComplete={handleScanComplete} />
-
-            {/* Active Email Investigation Workspace */}
-            {currentEmail && (
-              <div className="space-y-6">
-                {/* Active Incident Header Banner */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center space-x-2 text-xs text-slate-400 font-mono">
-                      <span>INCIDENT ID:</span>
-                      <span className="text-white font-bold">{currentEmail.id}</span>
-                      <span>•</span>
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{new Date(currentEmail.created_at).toLocaleString()}</span>
-                    </div>
-                    <h1 className="text-xl font-black text-white mt-1">
-                      {currentEmail.subject || '(No Subject)'}
-                    </h1>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
-                      <span>From: <b className="text-slate-200">{currentEmail.sender}</b></span>
-                      {currentEmail.reply_to && (
-                        <span>Reply-To: <b className="text-slate-300">{currentEmail.reply_to}</b></span>
-                      )}
-                      <span>Domain: <b className="text-blue-400">{currentEmail.sender_domain}</b></span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2 self-start md:self-auto">
-                    {currentEmail.case_id && (
-                      <button
-                        onClick={() => setActiveTab('cases')}
-                        className="px-3.5 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs font-semibold flex items-center gap-2 transition-colors"
-                      >
-                        <span>Correlated with Case</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => handleDeleteEmail(currentEmail.id)}
-                      title="Delete this incident and its forensic records"
-                      className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Delete Incident</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* AI Forensic Executive Briefing (Google Gemini) */}
-                <AiBriefingCard emailId={currentEmail.id} />
-
-                {/* Score & Findings Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <RiskScoreCard
-                    email={currentEmail}
-                    onExport={handleExportPdf}
-                    onVerifyChain={() => {}}
-                  />
-                  <div className="lg:col-span-2">
-                    <ReasonList reasons={currentEmail.reasons || []} />
-                  </div>
-                </div>
-
-                {/* Origin Tracer Leaflet Hop Map */}
-                <HopMap hops={currentEmail.hops || []} />
-
-                {/* Evidence Vault Hash-Chain Timeline */}
-                <ForensicChainViewer emailId={currentEmail.id} />
-              </div>
-            )}
-          </div>
-        )}
-
-
-        {/* Tab 3: Cases View */}
-        {activeTab === 'cases' && (
-          <CasesView
-            onSelectEmail={(id) => {
-              loadEmail(id);
-              setActiveTab('scanner');
-            }}
-          />
-        )}
-
-        {/* Tab 4: Governance & Settings */}
-        {activeTab === 'settings' && (
-          <SettingsModal maskPii={maskPii} setMaskPii={setMaskPii} accentTheme={accentTheme} setAccentTheme={setAccentTheme} />
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 py-4 text-center text-xs text-slate-500 font-mono">
-        ThreatLens Platform • Smart India Hackathon 2026 • AICTE Cyber Security Cell (PS ID: 26106)
-      </footer>
     </div>
   );
 }

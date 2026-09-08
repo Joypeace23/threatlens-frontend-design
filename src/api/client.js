@@ -40,8 +40,8 @@ function authHeaders(extra = {}) {
 
 export async function checkBackendHealth() {
   try {
-    const res = await fetch('/');
-    return res.ok;
+    const res = await fetch(`${API_BASE}/emails`, { headers: authHeaders() });
+    return res.status > 0 && res.status < 500;
   } catch {
     return false;
   }

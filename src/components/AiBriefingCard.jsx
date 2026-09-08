@@ -29,7 +29,7 @@ export default function AiBriefingCard({ emailId }) {
   };
 
   return (
-    <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 border border-indigo-500/30 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+    <div className="glass rounded-[1.6rem] p-5 relative overflow-hidden">
       {/* Glow highlight */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -z-0 pointer-events-none" />
 

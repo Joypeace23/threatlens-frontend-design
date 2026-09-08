@@ -174,8 +174,8 @@ export default function EmailUploader({ onScanComplete }) {
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+    <div className="glass rounded-[1.6rem] p-6 hover-lift">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <UploadCloud className="w-5 h-5 text-blue-400" />
@@ -187,19 +187,21 @@ export default function EmailUploader({ onScanComplete }) {
         </div>
 
         {/* Input Mode Toggle */}
-        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs self-start md:self-auto">
+        <div className="flex items-center bg-black/25 p-1 rounded-xl border border-white/10 text-xs self-start md:self-auto">
           <button
+            type="button"
             onClick={() => setActiveMode('upload')}
             className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-              activeMode === 'upload' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeMode === 'upload' ? 'bg-accent text-white shadow-accent' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             File Upload (.eml)
           </button>
           <button
+            type="button"
             onClick={() => setActiveMode('paste')}
             className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-              activeMode === 'paste' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              activeMode === 'paste' ? 'bg-accent text-white shadow-accent' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Raw Text / Paste
@@ -208,7 +210,7 @@ export default function EmailUploader({ onScanComplete }) {
       </div>
 
       {/* Quick Demo Preloads */}
-      <div className="mt-4 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+      <div className="mt-4 glass-strong p-3 rounded-xl">
         <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold mb-2">
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           <span>HACKATHON QUICK SAMPLES:</span>
@@ -218,7 +220,7 @@ export default function EmailUploader({ onScanComplete }) {
             <button
               key={key}
               onClick={() => handleSampleSelect(key)}
-              className="text-left p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-blue-500/40 transition-all group"
+              className="text-left p-2.5 rounded-xl bg-black/20 hover:bg-white/5 border border-white/10 hover:border-accent/40 transition-all group"
             >
               <div className="text-xs font-medium text-slate-200 group-hover:text-blue-400 transition-colors">
                 {item.name}
@@ -238,10 +240,10 @@ export default function EmailUploader({ onScanComplete }) {
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+            className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
               selectedFile
-                ? 'border-blue-500 bg-blue-500/5'
-                : 'border-slate-700 hover:border-slate-500 bg-slate-950/30'
+                ? 'border-accent bg-accent/10'
+                : 'border-white/15 hover:border-accent/50 bg-black/20'
             }`}
           >
             <input
@@ -279,7 +281,7 @@ export default function EmailUploader({ onScanComplete }) {
               onChange={(e) => setRawText(e.target.value)}
               placeholder="Paste raw email RFC 822 text (including Received: headers, From:, Subject:, and Body)..."
               rows={8}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full auth-input font-mono min-h-[180px] text-xs"
             />
           </div>
         )}
@@ -308,7 +310,7 @@ export default function EmailUploader({ onScanComplete }) {
         <button
           onClick={handleScan}
           disabled={loading}
-          className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-accent hover:brightness-110 text-white text-sm font-semibold shadow-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>

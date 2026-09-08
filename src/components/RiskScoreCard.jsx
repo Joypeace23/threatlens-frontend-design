@@ -59,7 +59,7 @@ export default function RiskScoreCard({ email, onExport, onVerifyChain, isVerify
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+    <div className="glass rounded-[1.6rem] p-6 flex flex-col justify-between hover-lift h-full">
       <div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -124,7 +124,7 @@ export default function RiskScoreCard({ email, onExport, onVerifyChain, isVerify
 
         <button
           onClick={onExport}
-          className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 text-xs font-semibold border border-blue-500/30 transition-colors"
+          className="flex items-center justify-center space-x-1.5 px-3 py-2 rounded-xl bg-accent/20 hover:bg-accent/30 text-accent text-xs font-semibold border border-accent/30 transition-colors"
         >
           <FileDown className="w-3.5 h-3.5" />
           <span>Export PDF</span>

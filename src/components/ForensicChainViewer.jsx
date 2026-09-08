@@ -26,16 +26,16 @@ export default function ForensicChainViewer({ emailId, onChainVerified }) {
   };
 
   const handleSimulateTamper = async () => {
-    if (!auditResult || !auditResult.entries || auditResult.entries.length === 0) {
-      // Run verify first to fetch entries
-      const fresh = await verifyChain(emailId);
-      setAuditResult(fresh);
-      if (!fresh.entries || fresh.entries.length === 0) return;
-    }
-
-    const targetLog = auditResult.entries[0];
     setTampering(true);
     try {
+      let ledger = auditResult;
+      if (!ledger?.entries?.length) {
+        ledger = await verifyChain(emailId);
+        setAuditResult(ledger);
+      }
+      if (!ledger?.entries?.length) return;
+
+      const targetLog = ledger.entries[0];
       await simulateTamper(targetLog.id, 'unauthorized_intruder');
       // Immediately re-verify to demonstrate tamper detection in action!
       const reAudit = await verifyChain(emailId);
@@ -48,7 +48,7 @@ export default function ForensicChainViewer({ emailId, onChainVerified }) {
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+    <div className="glass rounded-[1.6rem] p-6 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
@@ -74,7 +74,7 @@ export default function ForensicChainViewer({ emailId, onChainVerified }) {
           <button
             onClick={handleVerify}
             disabled={verifying || !emailId}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/20 transition-all"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-accent hover:brightness-110 text-white text-xs font-semibold shadow-accent transition-all"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${verifying ? 'animate-spin' : ''}`} />
             <span>Run Cryptographic Audit</span>

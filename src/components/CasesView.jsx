@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FolderKanban, ShieldAlert, Globe, Server, ChevronRight, Hash, Mail, ArrowRight } from 'lucide-react';
+import { FolderKanban, Globe, Server, Mail, ArrowRight } from 'lucide-react';
 import { listCases, getCaseDetail } from '../api/client';
 
 export default function CasesView({ onSelectEmail }) {
@@ -38,7 +38,7 @@ export default function CasesView({ onSelectEmail }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Case List Column */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+      <div className="glass rounded-[1.6rem] p-5 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <FolderKanban className="w-4 h-4 text-blue-400" />
@@ -91,7 +91,7 @@ export default function CasesView({ onSelectEmail }) {
       </div>
 
       {/* Case Details & Linked Emails */}
-      <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+      <div className="lg:col-span-2 glass rounded-[1.6rem] p-6 space-y-5">
         {selectedCase ? (
           <>
             <div className="pb-4 border-b border-slate-800">

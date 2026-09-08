@@ -1,14 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ShieldAlert, FolderKanban, Sliders, LogIn, LogOut, Activity, Sun, Moon, Palette } from 'lucide-react';
-
-export const ACCENT_PRESETS = [
-  { id: 'teal', label: 'Teal', swatch: '#17c3c5' },
-  { id: 'indigo', label: 'Indigo', swatch: '#6366f1' },
-  { id: 'rose', label: 'Rose', swatch: '#f43f6e' },
-  { id: 'emerald', label: 'Emerald', swatch: '#10b981' },
-  { id: 'amber', label: 'Amber', swatch: '#f5a524' },
-  { id: 'sky', label: 'Sky', swatch: '#0ea5e9' },
-];
+import React from 'react';
+import { Bell, LogIn, LogOut, Search, ShieldAlert, ScanSearch, FolderKanban, Sliders } from 'lucide-react';
 
 export default function Navbar({
   activeTab,
@@ -17,87 +8,93 @@ export default function Navbar({
   user,
   onOpenAuthModal,
   onLogout,
-  mode,
-  onToggleMode,
-  accentTheme,
-  setAccentTheme,
+  searchQuery,
+  setSearchQuery,
 }) {
   const tabs = [
-    { id: 'scanner', label: 'Scan & Investigate', icon: ShieldAlert },
-    { id: 'cases', label: 'Case Linker', icon: FolderKanban },
-    { id: 'settings', label: 'Governance & Vault', icon: Sliders },
+    { id: 'scanner', label: 'Console', icon: ScanSearch },
+    { id: 'cases', label: 'Cases', icon: FolderKanban },
+    { id: 'settings', label: 'Vault', icon: Sliders },
   ];
 
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  const paletteRef = useRef(null);
-
-  useEffect(() => {
-    if (!paletteOpen) return;
-    const onClick = (e) => {
-      if (paletteRef.current && !paletteRef.current.contains(e.target)) setPaletteOpen(false);
-    };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, [paletteOpen]);
-
   return (
-    <header className="relative z-40 sticky top-0 px-4 sm:px-6 py-4">
-      <div className="glass max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 rounded-2xl px-4 py-3">
-        <button type="button" className="flex items-center gap-3 text-left" onClick={() => setActiveTab('scanner')}>
-          <div className="bg-accent shadow-accent rounded-xl p-2.5 text-slate-950"><ShieldAlert className="w-6 h-6" /></div>
-          <div><div className="flex items-center gap-2"><span className="font-black text-xl tracking-tight">ThreatLens</span><span className="text-[10px] font-bold tracking-wider px-2 py-1 rounded-full border border-accent/30 text-accent">V2.0</span></div><p className="text-[11px] text-slate-400 font-mono tracking-wide">DETECT. TRACE. PROVE.</p></div>
-        </button>
-        <nav className="order-3 md:order-2 w-full md:w-auto flex items-center gap-1 overflow-x-auto glass-strong rounded-xl p-1" aria-label="Primary navigation">
-          {tabs.map(({ id, label, icon: Icon }) => <button key={id} type="button" onClick={() => setActiveTab(id)} className={`flex shrink-0 items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${activeTab === id ? 'bg-accent text-slate-950 shadow-accent' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}><Icon className="w-4 h-4" /><span>{label}</span></button>)}
-        </nav>
-        <div className="order-2 md:order-3 flex items-center gap-2 sm:gap-3">
-          <div className="hidden sm:flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-slate-950/40 border border-white/10 text-[10px] font-mono"><Activity className={`w-3.5 h-3.5 ${backendOnline ? 'text-emerald-400' : 'text-rose-400'}`} /><span className={backendOnline ? 'text-emerald-300' : 'text-rose-300'}>{backendOnline ? 'ENGINE ONLINE' : 'ENGINE OFFLINE'}</span></div>
-
-          {/* Live accent palette switcher */}
-          <div className="relative" ref={paletteRef}>
-            <button
-              type="button"
-              onClick={() => setPaletteOpen((o) => !o)}
-              title="Change accent color"
-              aria-haspopup="true"
-              aria-expanded={paletteOpen}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 border border-white/10 transition"
-            >
-              <Palette className="w-4 h-4" />
-            </button>
-            {paletteOpen && (
-              <div className="absolute right-0 mt-2 glass-strong rounded-xl p-3 w-44 z-50 float-in">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">Accent color</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {ACCENT_PRESETS.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => { setAccentTheme(p.id); setPaletteOpen(false); }}
-                      title={p.label}
-                      className={`h-9 rounded-lg border-2 transition-transform hover:scale-105 ${accentTheme === p.id ? 'border-white' : 'border-transparent'}`}
-                      style={{ background: p.swatch }}
-                    >
-                      <span className="sr-only">{p.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+    <header className="relative z-20 px-3 sm:px-5 pt-4 pb-2">
+      <div className="glass flex flex-wrap items-center justify-between gap-3 rounded-[1.6rem] px-4 py-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="md:hidden accent-gradient shadow-accent rounded-2xl p-2 text-white">
+            <ShieldAlert className="w-5 h-5" />
           </div>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-2xl font-black tracking-tight truncate">
+              Email Threat Console
+            </h1>
+            <p className="text-[11px] text-slate-400 font-medium">
+              Detect · Trace · Prove
+              <span className={`ml-2 ${backendOnline ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {backendOnline ? '● Engine live' : '● Engine offline'}
+              </span>
+            </p>
+          </div>
+        </div>
 
-          {/* Dark / bright mode toggle */}
+        <label className="search-pill flex items-center gap-2 px-4 py-2.5 w-full sm:w-[min(420px,42vw)] order-3 sm:order-none">
+          <Search className="w-4 h-4 text-slate-500 shrink-0" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search incidents, senders, domains..."
+            className="bg-transparent outline-none text-sm w-full placeholder:text-slate-500"
+          />
+        </label>
+
+        <div className="flex items-center gap-2">
+          <nav className="md:hidden flex items-center gap-1 glass-strong rounded-xl p-1">
+            {tabs.map(({ id, icon: Icon, label }) => (
+              <button
+                key={id}
+                type="button"
+                title={label}
+                onClick={() => setActiveTab(id)}
+                className={`p-2 rounded-lg ${activeTab === id ? 'bg-accent text-white' : 'text-slate-400'}`}
+              >
+                <Icon className="w-4 h-4" />
+              </button>
+            ))}
+          </nav>
+
           <button
             type="button"
-            onClick={onToggleMode}
-            title={mode === 'light' ? 'Switch to dark mode' : 'Switch to bright mode'}
-            aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to bright mode'}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 border border-white/10 transition"
+            className="relative p-2.5 rounded-full glass-strong text-slate-300 hover:text-white"
+            title="Notifications"
           >
-            {mode === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            <Bell className="w-4 h-4" />
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-rose-400" />
           </button>
 
-          {user ? <div className="flex items-center gap-2 glass-strong rounded-xl p-1.5 pl-3"><div className="text-right"><div className="text-xs font-bold leading-tight">{user.full_name || user.email.split('@')[0]}</div><div className="text-[10px] font-mono uppercase text-accent">{user.role}</div></div><button type="button" onClick={onLogout} title="Log out" className="p-2 rounded-lg text-slate-400 hover:text-rose-300 hover:bg-rose-400/10"><LogOut className="w-4 h-4" /></button></div> : <button type="button" onClick={onOpenAuthModal} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent text-slate-950 text-xs font-bold shadow-accent hover:brightness-110 transition"><LogIn className="w-3.5 h-3.5" /><span className="hidden sm:inline">Sign in / Sign up</span><span className="sm:hidden">Sign in</span></button>}
+          {user ? (
+            <div className="flex items-center gap-2 glass-strong rounded-full pl-3 pr-1.5 py-1">
+              <div className="hidden sm:block text-right">
+                <div className="text-xs font-bold leading-tight">{user.full_name || user.email.split('@')[0]}</div>
+                <div className="text-[10px] font-mono uppercase text-accent">{user.role}</div>
+              </div>
+              <div className="w-8 h-8 rounded-full accent-gradient grid place-items-center text-[11px] font-black text-white">
+                {(user.full_name || user.email).slice(0, 1).toUpperCase()}
+              </div>
+              <button type="button" onClick={onLogout} title="Log out" className="p-2 rounded-full text-slate-400 hover:text-rose-300">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onOpenAuthModal}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-accent text-white text-xs font-bold shadow-accent hover:brightness-110"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              Sign in
+            </button>
+          )}
         </div>
       </div>
     </header>
